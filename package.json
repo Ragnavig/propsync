@@ -1,6 +1,6 @@
 {
   "name": "propsync",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Sync standard properties across notes by group without overwriting existing values.",
   "main": "main.js",
   "type": "module",

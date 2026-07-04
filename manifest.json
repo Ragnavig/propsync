@@ -1,7 +1,7 @@
 {
 	"id": "propsync",
 	"name": "Propsync",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"minAppVersion": "1.9.12",
 	"description": "Sync standard properties across notes by group without overwriting existing values.",
 	"author": "Ragna",
