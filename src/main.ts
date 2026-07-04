@@ -26,16 +26,16 @@ export default class PropsyncPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'open-propsync-view',
-			name: 'Open Propsync view',
+			id: 'open-view',
+			name: 'Open view',
 			callback: async () => {
 				await this.activatePropsyncView();
 			},
 		});
 
 		this.addCommand({
-			id: 'open-propsync-view-from-editor',
-			name: 'Open Propsync view',
+			id: 'open-view-from-editor',
+			name: 'Open view from editor',
 			editorCallback: async (
 				_editor,
 				_ctx: MarkdownView | MarkdownFileInfo,
@@ -69,7 +69,7 @@ export default class PropsyncPlugin extends Plugin {
 		const leaf = existingLeaves[0];
 
 		if (leaf) {
-			this.app.workspace.revealLeaf(leaf);
+			await this.app.workspace.revealLeaf(leaf);
 		}
 	}
 }
@@ -162,7 +162,6 @@ class PropsyncView extends ItemView {
 			.setDesc('Enter one property per line. Missing properties are added without values.')
 			.addTextArea((textArea) => {
 				textArea
-					.setPlaceholder('name\nalias\nstatus\nprofession')
 					.setValue(this.propertyText)
 					.onChange((value) => {
 						this.propertyText = value;
@@ -244,7 +243,7 @@ class PropsyncView extends ItemView {
 		for (const file of markdownFiles) {
 			const cache = metadataCache.getFileCache(file);
 			const frontmatter = cache?.frontmatter;
-			const groupValue = frontmatter?.[PROPSYNC_KEY];
+			const groupValue = frontmatter?.[PROPSYNC_KEY] as unknown;
 
 			if (typeof groupValue !== 'string' || groupValue.trim().length === 0) {
 				continue;
@@ -337,12 +336,14 @@ class PropsyncView extends ItemView {
 		let didChange = false;
 
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+			const typedFrontmatter = frontmatter as Record<string, unknown>;
+
 			for (const propertyName of properties) {
-				if (Object.prototype.hasOwnProperty.call(frontmatter, propertyName)) {
+				if (Object.prototype.hasOwnProperty.call(typedFrontmatter, propertyName)) {
 					continue;
 				}
 
-				frontmatter[propertyName] = null;
+				typedFrontmatter[propertyName] = null;
 				didChange = true;
 			}
 		});
