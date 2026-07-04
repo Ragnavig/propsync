@@ -1,27 +1,33 @@
 {
-	"name": "Propsync",
-	"version": "1.0.0",
-	"description": "Propsync is an Obsidian plugin that syncs standard properties across notes by group. Add a propsync value to your note properties, define shared fields for that group, and missing properties are added automatically without overwriting existing values.",
-	"main": "main.js",
-	"type": "module",
-	"scripts": {
-		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json",
-		"lint": "eslint ."
-	},
-	"keywords": [],
-	"license": "0-BSD",
-	"devDependencies": {
-		"@eslint/js": "^9.39.4",
-		"@types/node": "^22.15.17",
-		"esbuild": "0.25.5",
-		"eslint": "^9.39.4",
-		"eslint-plugin-obsidianmd": "^0.4.0",
-		"globals": "^17.6.0",
-		"jiti": "^2.6.1",
-		"obsidian": "latest",
-		"typescript": "^5.8.3",
-		"typescript-eslint": "^8.59.1"
-	}
+  "name": "propsync",
+  "version": "0.0.1",
+  "description": "Sync standard properties across notes by group without overwriting existing values.",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "properties",
+    "frontmatter",
+    "metadata"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^22.15.17",
+    "esbuild": "0.25.5",
+    "eslint": "^9.39.4",
+    "eslint-plugin-obsidianmd": "^0.4.0",
+    "globals": "^17.6.1",
+    "jiti": "^2.6.1",
+    "obsidian": "latest",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.59.1"
+  }
 }

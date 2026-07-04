@@ -8,23 +8,14 @@ import {
 	TFile,
 	WorkspaceLeaf,
 } from 'obsidian';
-import {
-	DEFAULT_SETTINGS,
-	MyPluginSettings,
-	SampleSettingTab,
-} from './settings';
 
 const PROPSYNC_KEY = 'propsync';
 const PROPSYNC_VIEW_TYPE = 'propsync-view';
 
 type PropsyncGroupMap = Map<string, TFile[]>;
 
-export default class MyPlugin extends Plugin {
-	settings!: MyPluginSettings;
-
+export default class PropsyncPlugin extends Plugin {
 	async onload() {
-		await this.loadSettings();
-
 		this.registerView(
 			PROPSYNC_VIEW_TYPE,
 			(leaf) => new PropsyncView(leaf),
@@ -35,16 +26,16 @@ export default class MyPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'open-propsync-menu',
-			name: 'Propsync Menü öffnen',
+			id: 'open-propsync-view',
+			name: 'Open Propsync view',
 			callback: async () => {
 				await this.activatePropsyncView();
 			},
 		});
 
 		this.addCommand({
-			id: 'open-propsync-menu-from-editor',
-			name: 'Propsync Menü öffnen',
+			id: 'open-propsync-view-from-editor',
+			name: 'Open Propsync view',
 			editorCallback: async (
 				_editor,
 				_ctx: MarkdownView | MarkdownFileInfo,
@@ -52,8 +43,6 @@ export default class MyPlugin extends Plugin {
 				await this.activatePropsyncView();
 			},
 		});
-
-		this.addSettingTab(new SampleSettingTab(this.app, this));
 	}
 
 	async ensurePropsyncTabExists() {
@@ -66,7 +55,7 @@ export default class MyPlugin extends Plugin {
 		const leaf = this.app.workspace.getLeftLeaf(false);
 
 		if (!leaf) {
-			new Notice('Propsync konnte keinen linken Tab erstellen.');
+			new Notice('Propsync could not create a left sidebar tab.');
 			return;
 		}
 
@@ -77,26 +66,11 @@ export default class MyPlugin extends Plugin {
 		await this.ensurePropsyncTabExists();
 
 		const existingLeaves = this.app.workspace.getLeavesOfType(PROPSYNC_VIEW_TYPE);
-
 		const leaf = existingLeaves[0];
 
 		if (leaf) {
 			this.app.workspace.revealLeaf(leaf);
 		}
-	}
-
-	onunload() {}
-
-	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<MyPluginSettings>,
-		);
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings);
 	}
 }
 
@@ -140,14 +114,14 @@ class PropsyncView extends ItemView {
 		container.empty();
 		container.createEl('h2', { text: 'Propsync' });
 		container.createEl('p', {
-			text: 'Wähle eine Gruppe aus. Darunter werden alle Properties angezeigt, die in allen Dateien dieser Gruppe vorhanden sind.',
+			text: 'Select a group to view properties that exist in every note in that group.',
 		});
 
 		this.groups = this.collectPropsyncGroups();
 
 		if (this.groups.size === 0) {
 			container.createEl('p', {
-				text: 'Keine Markdown Dateien mit propsync Property gefunden.',
+				text: 'No Markdown files with a propsync property were found.',
 			});
 			return;
 		}
@@ -157,7 +131,7 @@ class PropsyncView extends ItemView {
 
 			if (!firstGroup) {
 				container.createEl('p', {
-					text: 'Keine propsync Gruppe gefunden.',
+					text: 'No propsync group was found.',
 				});
 				return;
 			}
@@ -166,8 +140,8 @@ class PropsyncView extends ItemView {
 		}
 
 		new Setting(container)
-			.setName('Gruppe')
-			.setDesc('Alle Dateien mit demselben propsync Wert werden als Gruppe behandelt.')
+			.setName('Group')
+			.setDesc('All notes with the same propsync value are treated as one group.')
 			.addDropdown((dropdown) => {
 				for (const groupName of this.groups.keys()) {
 					dropdown.addOption(groupName, groupName);
@@ -184,11 +158,11 @@ class PropsyncView extends ItemView {
 		this.fileListEl = container.createDiv();
 
 		new Setting(container)
-			.setName('Neue Standard Properties')
-			.setDesc('Eine Property pro Zeile. Diese Properties werden ohne Wert ergänzt, wenn sie fehlen.')
+			.setName('New standard properties')
+			.setDesc('Enter one property per line. Missing properties are added without values.')
 			.addTextArea((textArea) => {
 				textArea
-					.setPlaceholder('name\nalias\nberuf\nstatus')
+					.setPlaceholder('name\nalias\nstatus\nprofession')
 					.setValue(this.propertyText)
 					.onChange((value) => {
 						this.propertyText = value;
@@ -199,24 +173,24 @@ class PropsyncView extends ItemView {
 			});
 
 		new Setting(container)
-			.setName('Synchronisieren')
-			.setDesc('Fügt fehlende Properties hinzu. Vorhandene Werte werden nicht überschrieben.')
+			.setName('Sync')
+			.setDesc('Adds missing properties. Existing values are never overwritten.')
 			.addButton((button) => {
 				button
-					.setButtonText('Auf Gruppe syncen')
+					.setButtonText('Sync group')
 					.setCta()
 					.onClick(async () => {
 						const files = this.groups.get(this.selectedGroup) ?? [];
 						const properties = this.parsePropertyNames(this.propertyText);
 
 						if (properties.length === 0) {
-							new Notice('Bitte mindestens eine Property eintragen.');
+							new Notice('Please enter at least one property.');
 							return;
 						}
 
 						const changedFiles = await this.syncPropertiesToFiles(files, properties);
 						new Notice(
-							`Propsync abgeschlossen: ${changedFiles} von ${files.length} Dateien angepasst.`,
+							`Propsync finished: ${changedFiles} of ${files.length} files updated.`,
 						);
 
 						this.groups = this.collectPropsyncGroups();
@@ -237,12 +211,12 @@ class PropsyncView extends ItemView {
 
 		this.propertyListEl.empty();
 		this.propertyListEl.createEl('h3', {
-			text: `Gemeinsame Properties: ${this.selectedGroup}`,
+			text: `Shared properties: ${this.selectedGroup}`,
 		});
 
 		if (sharedProperties.length === 0) {
 			this.propertyListEl.createEl('p', {
-				text: 'Keine Properties gefunden, die in allen Dateien dieser Gruppe vorhanden sind.',
+				text: 'No properties were found in every file of this group.',
 			});
 		} else {
 			const propertyList = this.propertyListEl.createEl('ul');
@@ -253,7 +227,7 @@ class PropsyncView extends ItemView {
 
 		this.fileListEl.empty();
 		this.fileListEl.createEl('h3', {
-			text: `Dateien: ${files.length}`,
+			text: `Files: ${files.length}`,
 		});
 
 		const fileList = this.fileListEl.createEl('ul');
