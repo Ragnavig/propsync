@@ -3,7 +3,7 @@
 	"name": "Propsync",
 	"version": "0.0.1",
 	"minAppVersion": "1.9.12",
-	"description": "Propsync is an Obsidian plugin that syncs standard properties across notes by group.",
+	"description": "Sync standard properties across notes by group without overwriting existing values.",
 	"author": "Ragna",
 	"authorUrl": "https://github.com/Ragnavig",
 	"isDesktopOnly": false
